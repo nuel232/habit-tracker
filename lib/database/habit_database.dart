@@ -65,7 +65,13 @@ class HabitDatabase extends ChangeNotifier {
 
       // If habit is completed -> add the current date to the completed list
       // If not -> remove the date
-      habit.completedDays.add(todayDateOnly);
+      // habit.completedDays.add(todayDateOnly);
+
+      if (isCompleted && !habit.completedDays.contains(todayDateOnly)) {
+        habit.completedDays.add(todayDateOnly);
+      } else {
+        habit.completedDays.remove(todayDateOnly);
+      }
 
       // Save the updated habit back to the database
       await habit.save();
