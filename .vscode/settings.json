@@ -1,3 +1,7 @@
 {
-    "cmake.sourceDirectory": "D:/vscode/dev/habit_tracker/linux/flutter"
+    "cmake.sourceDirectory": "D:/vscode/dev/habit_tracker/linux/flutter",
+    "cSpell.words": [
+        "Schyler"
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

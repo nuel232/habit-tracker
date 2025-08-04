@@ -1,17 +1,15 @@
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 
-//run flutter pub run build_runner build
 part 'habit.g.dart';
 
-@collection
-class Habit {
-  //habit id
-  Id id = Isar.autoIncrement;
+@HiveType(typeId: 1)
+class Habit extends HiveObject {
+  @HiveField(0)
+  String name;
 
-  //habit name
-  late String name;
+  @HiveField(1)
+  List<DateTime> completedDays;
 
-  //completed days
-
-  List<DateTime> completedDays = [];
+  Habit({required this.name, List<DateTime>? completedDays})
+    : completedDays = completedDays ?? [];
 }

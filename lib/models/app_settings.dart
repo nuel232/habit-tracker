@@ -1,9 +1,11 @@
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 
 part 'app_settings.g.dart';
 
-@Collection()
+@HiveType(typeId: 0)
 class AppSettings {
-  Id id = Isar.autoIncrement;
+  @HiveField(0)
   DateTime? firstLaunchDate;
+
+  AppSettings({this.firstLaunchDate});
 }

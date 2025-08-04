@@ -1,129 +1,103 @@
-import 'package:flutter/cupertino.dart';
-import 'package:habit_tracker/models/app_settings.dart';
+import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:habit_tracker/models/habit.dart';
-import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:habit_tracker/models/app_settings.dart';
 
 class HabitDatabase extends ChangeNotifier {
-  static late Isar isar;
-
-  //S E T U P
-
-  //I N I T I A L I Z E - D A TA B A S E
-  static Future<void> initialize() async {
-    final dir = await getApplicationDocumentsDirectory();
-    isar = await Isar.open([
-      HabitSchema,
-      AppSettingsSchema,
-    ], directory: dir.path);
-  }
-
-  //save first date of app start up (for heatmap)
-  static Future<void> saveFirstLaunchDate() async {
-    final existingSettings = await isar.appSettings.where().findFirst();
-    if (existingSettings == null) {
-      final settings = AppSettings()..firstLaunchDate = DateTime.now();
-      await isar.writeTxn(() => isar.appSettings.put(settings));
-    }
-  }
-
-  //get first date of app startup (for heatmap)
-  Future<DateTime?> getFirstLaunchDate() async {
-    final settings = await isar.appSettings.where().findFirst();
-    return settings?.firstLaunchDate;
-  }
-
-  /*
-  C R U D O P E R A T I O N S
-  */
+  final Box<Habit> _habitBox = Hive.box<Habit>('habits');
+  final Box<AppSettings> _settingsBox = Hive.box<AppSettings>('settings');
 
   //List of habits
   List<Habit> currentHabits = [];
 
-  //C R E A T E
-  Future<void> addHabit(String HabitName) async {
-    final newHabit = Habit()..name = HabitName;
+  // S E T U P
 
-    await isar.writeTxn(() => isar.habits.put(newHabit));
+  // Save first date of app startup (for heatmap)
+  static Future<void> saveFirstLaunchDate() async {
+    final settingsBox = Hive.box<AppSettings>('settings');
+    if (settingsBox.isEmpty) {
+      await settingsBox.put(
+        'first',
+        AppSettings(firstLaunchDate: DateTime.now()),
+      );
+    }
+  }
 
-    //re-read from db
-    readHabit();
+  // Get first date of app startup (for heatmap)
+  Future<DateTime?> getFirstLaunchDate() async {
+    final settings = _settingsBox.get('first');
+    return settings?.firstLaunchDate;
+  }
+
+  /*
+  C R U D   O P E R A T I O N S
+  */
+
+  // C R E A T E
+  Future<void> addHabit(String habitName) async {
+    final newHabit = Habit(name: habitName);
+
+    // Add habit to database (Hive auto-generates the key)
+    await _habitBox.add(newHabit);
+
+    // Re-read from db
+    await readHabits();
   }
 
   // R E A D
+  Future<void> readHabits() async {
+    // Fetch all habits from the database
+    currentHabits = _habitBox.values.toList();
 
-  Future<void> readHabit() async {
-    //fetch all habit from he database
-    List<Habit> fetchedhabits = await isar.habits.where().findAll();
-
-    //give to current habits
-    currentHabits.clear();
-
-    //add all to current habit
-    currentHabits.addAll(fetchedhabits);
-
-    //update UI
+    // Update UI
     notifyListeners();
   }
 
-  //U P D A T E - check habit on and off
-  Future<void> updateHabitCompletion(int id, bool isCompleted) async {
-    //find the specific habit
-    final habit = await isar.habits.get(id);
+  // U P D A T E - check habit on and off
+  Future<void> updateHabitCompletion(int key, bool isCompleted) async {
+    // Find the specific habit using its Hive key
+    final habit = _habitBox.get(key);
 
     if (habit != null) {
-      await isar.writeTxn(() async {
-        //today
-        final today = DateTime.now();
+      // Get today's date (date only)
+      final today = DateTime.now();
+      final todayDateOnly = DateTime(today.year, today.month, today.day);
 
-        final todayDateOnly = DateTime(today.year, today.month, today.day);
+      // If habit is completed -> add the current date to the completed list
+      // If not -> remove the date
+      habit.completedDays.add(todayDateOnly);
 
-        //if habit is completed -> add the current date to the completedDays list
-        if (isCompleted && !habit.completedDays.contains(todayDateOnly)) {
-          //add the current date if it's not already in the list
-          habit.completedDays.add(todayDateOnly);
-        }
-        //if habit is NOT completed -> remove the current date from the list
-        else {
-          //remove the current date if the habit has been marked as not completed
-          habit.completedDays.remove(todayDateOnly);
-        }
-
-        //save the update habits back to the database
-        await isar.habits.put(habit);
-      });
+      // Save the updated habit back to the database
+      await habit.save();
     }
-    //re-read from db
-    readHabit();
+
+    // Re-read from db
+    await readHabits();
   }
 
-  //U P D A T E - edit habit name
-  Future<void> updateHabitName(int id, String newName) async {
-    //find the specific habit
-    final habit = await isar.habits.get(id);
+  // U P D A T E - edit habit name
+  Future<void> updateHabitName(int key, String newName) async {
+    // Find the specific habit
+    final habit = _habitBox.get(key);
 
-    //update habit name
+    // Update habit name
     if (habit != null) {
-      //update name
-      await isar.writeTxn(() async {
-        habit.name = newName;
-        //save updated habit hack to the db
-        await isar.habits.put(habit);
-      });
+      habit.name = newName;
+
+      // Save updated habit back to db
+      await habit.save();
     }
 
-    //re-read from db
-    readHabit();
+    // Re-read from db
+    await readHabits();
   }
 
-  //D E L E T E
-  Future<void> removeHabit(int id) async {
-    //perform the delete
-    await isar.writeTxn(() async {
-      await isar.habits.delete(id);
-    });
+  // D E L E T E
+  Future<void> removeHabit(int key) async {
+    // Perform the delete
+    await _habitBox.delete(key);
 
-    //re-read from db
-    readHabit();
+    // Re-read from db
+    await readHabits();
   }
 }
