@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:habit_tracker/components/my_drawer.dart';
 import 'package:habit_tracker/components/my_habit_tile.dart';
+import 'package:habit_tracker/components/my_heat_map.dart';
 import 'package:habit_tracker/database/habit_database.dart';
 import 'package:habit_tracker/models/app_settings.dart';
 import 'package:habit_tracker/models/habit.dart';
@@ -176,25 +177,65 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(),
+      appBar: AppBar(backgroundColor: Colors.transparent),
       drawer: MyDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: createNewHabit,
         backgroundColor: Theme.of(context).colorScheme.tertiary,
         child: Icon(Icons.add),
       ),
-      body: Consumer<HabitDatabase>(
-        builder: (context, db, child) {
-          return _buildHabitList(db.currentHabits);
-        },
+      body: ListView(
+        children: [
+          //heat map
+          _buildHeatMap(),
+
+          //habit list
+          Consumer<HabitDatabase>(
+            builder: (context, db, child) {
+              return _buildHabitList(db.currentHabits);
+            },
+          ),
+        ],
       ),
     );
   }
 
+  //build heat map
+  Widget _buildHeatMap() {
+    //habit database
+    final db = Provider.of<HabitDatabase>(context, listen: false);
+
+    //Currents habits
+    List<Habit> currentHabits = db.currentHabits;
+
+    //return heatmap UI
+
+    return FutureBuilder(
+      future: db.getFirstLaunchDate(),
+      builder: (context, snapshot) {
+        //once the data is available -> build heatmap
+        if (snapshot.hasData) {
+          return MyHeatMap(
+            startDate: snapshot.data!,
+            datasets: preHeatMapDataset(currentHabits),
+          );
+        }
+        //handle case where no data is returned
+        else {
+          return Container();
+        }
+      },
+    );
+  }
+
+  //build habit list
   Widget _buildHabitList(List<Habit> currentHabits) {
     //return list
     return ListView.builder(
       itemCount: currentHabits.length,
+      //when you have a list inside another list like nested list you might have problems scrolling
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         //get each individual habit
         final habit = currentHabits[index];
