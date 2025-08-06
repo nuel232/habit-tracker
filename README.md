@@ -1,17 +1,67 @@
-# habit_tracker
+# Habit Tracker
 
-A new Flutter project.
+A simple and customizable habit tracking app built with Flutter. Track your daily habits, visualize your progress, and stay motivated!
+
+## Features
+
+- Add, edit, and delete daily habits
+- Mark habits as completed for each day
+- Visualize your habit streaks with a heatmap calendar
+- Persistent local storage using Hive
+- Light and dark mode support (toggle in the drawer)
+- Intuitive and modern UI
+
+## Screenshots
+<!-- Add screenshots here if available -->
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- [Flutter SDK](https://flutter.dev/docs/get-started/install)
+- Dart 3.8.1 or higher
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# habit-tracker
+1. Clone this repository:
+
+   ```bash
+   git clone <repo-url>
+   cd habit_tracker
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   flutter pub get
+   ```
+
+3. Generate Hive type adapters (if needed):
+
+   ```bash
+   flutter pub run build_runner build
+   ```
+
+4. Run the app:
+
+   ```bash
+   flutter run
+   ```
+
+## Project Structure
+
+- `lib/`
+  - `components/` – UI widgets (habit tile, heatmap, drawer)
+  - `database/` – Hive database logic
+  - `models/` – Data models for habits and app settings
+  - `pages/` – Main app pages
+  - `theme/` – Light/dark mode themes and provider
+  - `util/` – Utility functions
+
+## Dependencies
+
+- [provider](https://pub.dev/packages/provider)
+- [hive](https://pub.dev/packages/hive)
+- [hive_flutter](https://pub.dev/packages/hive_flutter)
+- [flutter_slidable](https://pub.dev/packages/flutter_slidable)
+- [flutter_heatmap_calendar](https://pub.dev/packages/flutter_heatmap_calendar)
