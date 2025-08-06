@@ -23,12 +23,15 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    Future.delayed(Duration.zero, () {
+    Future.delayed(Duration.zero, () async {
       final db = Provider.of<HabitDatabase>(context, listen: false);
+
+      // First, load existing habits from database
+      await db.readHabits();
+
       if (db.currentHabits.isEmpty) {
         db.addHabit('Habit 1');
       }
-      db.readHabits();
     });
   }
 
