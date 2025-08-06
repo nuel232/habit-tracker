@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 final ThemeData darkTheme = ThemeData(
   colorScheme: ColorScheme.dark(
-    primary: Colors.deepPurple.shade400,
-    secondary: Colors.deepPurple.shade600, // Harmonious
-    tertiary: Colors.deepPurple.shade200, // Better hierarchy
-    surface: Colors.grey.shade900,
-    inversePrimary: Colors.deepPurple.shade100, // Consistent
-    onSurface: Colors.grey.shade100, // Better text contrast
-    outline: Colors.grey.shade600,
+    primary: Colors.deepPurple.shade800, // Rich deep purple base
+    secondary: Colors.deepPurple.shade400, // Softer accent
+    tertiary: Colors.deepPurple.shade100, // Light highlight
+    surface: Colors.grey.shade900, // Dark background
+    inversePrimary: Colors.deepPurple.shade50, // Subtle inverse
+    onSurface: Colors.grey.shade200, // Good text contrast
+    outline: Colors.grey.shade700, // Subtle borders
+    inverseSurface: Colors.deepPurple.shade700,
   ),
 );
