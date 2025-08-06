@@ -15,16 +15,34 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  //text controller
+  final TextEditingController textController = TextEditingController();
+
+  // Cache the first launch date to prevent unnecessary rebuilds
+  DateTime? _cachedFirstLaunchDate;
+  bool _isLoadingFirstLaunchDate = true;
+
   @override
   void initState() {
     super.initState();
 
     Future.delayed(Duration.zero, () async {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
       final db = Provider.of<HabitDatabase>(context, listen: false);
-      await db.readHabits();
-      // Remove the automatic habit creation
+
+      // Load habits and first launch date simultaneously
+      await Future.wait([db.readHabits(), _loadFirstLaunchDate(db)]);
     });
+  }
+
+  Future<void> _loadFirstLaunchDate(HabitDatabase db) async {
+    final firstLaunchDate = await db.getFirstLaunchDate();
+    if (mounted) {
+      setState(() {
+        _cachedFirstLaunchDate = firstLaunchDate;
+        _isLoadingFirstLaunchDate = false;
+      });
+    }
   }
 
   @override
@@ -32,9 +50,6 @@ class _HomePageState extends State<HomePage> {
     textController.dispose();
     super.dispose();
   }
-
-  //text controller
-  final TextEditingController textController = TextEditingController();
 
   //create new habit
   void createNewHabit() {
@@ -197,26 +212,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  //build heat map
+  //build heat map - now uses cached data to prevent flicker
   Widget _buildHeatMap() {
+    // If we're still loading, show a placeholder
+    if (_isLoadingFirstLaunchDate) {
+      return SizedBox(
+        height: 200, // Fixed height to prevent layout shifts
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // If we don't have a first launch date, show empty container
+    if (_cachedFirstLaunchDate == null) {
+      return Container(height: 200);
+    }
+
+    // Use Consumer to get real-time habit updates but with cached start date
     return Consumer<HabitDatabase>(
       builder: (context, db, child) {
-        return FutureBuilder(
-          future: db.getFirstLaunchDate(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Text('Error loading data');
-            } else if (snapshot.hasData) {
-              return MyHeatMap(
-                startDate: snapshot.data!,
-                datasets: preHeatMapDataset(db.currentHabits),
-              );
-            } else {
-              return Container();
-            }
-          },
+        return MyHeatMap(
+          startDate: _cachedFirstLaunchDate!,
+          datasets: preHeatMapDataset(db.currentHabits),
         );
       },
     );
