@@ -14,19 +14,19 @@ class MyHeatMap extends StatelessWidget {
       endDate: DateTime.now(),
       datasets: datasets,
       colorMode: ColorMode.color,
-      defaultColor: Theme.of(context).colorScheme.secondary,
-      textColor: Colors.white,
+      defaultColor: Theme.of(context).colorScheme.tertiary,
+      textColor: Theme.of(context).colorScheme.onSurface,
       showColorTip: false,
       showText: true,
       scrollable: true,
       size: 38,
       //first have to define our color sets
       colorsets: {
-        1: Colors.green.shade200,
-        2: Colors.green.shade300,
-        3: Colors.green.shade400,
-        4: Colors.green.shade500,
-        5: Colors.green.shade600,
+        1: Colors.deepPurple.shade100,
+        2: Colors.deepPurple.shade300,
+        3: Colors.deepPurple.shade500,
+        4: Colors.deepPurple.shade700,
+        5: Colors.deepPurple.shade900,
       },
     );
   }
