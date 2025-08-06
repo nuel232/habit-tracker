@@ -64,7 +64,9 @@ class MyHabitTile extends StatelessWidget {
                 style: TextStyle(
                   color: isCompleted
                       ? Theme.of(context).colorScheme.inversePrimary
-                      : Colors.black,
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface, // Theme-aware text color
                 ),
               ),
 
